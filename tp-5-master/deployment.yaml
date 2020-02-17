@@ -1,0 +1,43 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+    name: nginx
+spec:
+    replicas: 3
+    selector:
+        matchLabels:
+            server: nginx
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 2
+            maxUnavailable: 1
+    template:
+        metadata:
+            labels:
+                server: nginx
+        spec:
+            containers:
+            - name: nginx
+              image: nginx
+              ports:
+              - containerPort: 80
+              readinessProbe:
+                httpGet:
+                    path: /
+                    port: 80
+                initialDelaySeconds: 3
+                periodSeconds: 5
+              livenessProbe:
+                httpGet:
+                    path: /
+                    port: 80
+                initialDelaySeconds: 3
+                periodSeconds: 5
+              volumeMounts:
+              - name: volume-for-nginx-index
+                mountPath: /usr/share/nginx/html
+            volumes:
+            - name: volume-for-nginx-index
+              configMap:
+                name: index-nginx
